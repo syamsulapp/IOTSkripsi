@@ -1,167 +1,124 @@
 #include <Arduino.h>
+#include "FS.h"
 
-#include "WiFi.h"
-#include "ESPAsyncWebServer.h"
-
-// Set to true to define Relay as Normally Open (NO)
-#define RELAY_NO true
-
-// Set number of relays
-#define NUM_RELAYS 5
-
-// Assign each GPIO to a relay
-int relayGPIOs[NUM_RELAYS] = {2, 26, 27, 25, 33};
+#include <WiFi.h>
 
 // Replace with your network credentials
 const char *ssid = "IOTSkripsi";
-const char *password = "123456";
+const char *password = "12345678910";
 
-const char *PARAM_INPUT_1 = "relay";
-const char *PARAM_INPUT_2 = "state";
+// milis
+unsigned long currentTime = millis();
+unsigned long previousTime = 0;
+const long timeoutTime = 2000;
 
-// Create AsyncWebServer object on port 80
-AsyncWebServer server(80);
+// Set web server port number to 80
+WiFiServer server(80);
 
-const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML><html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    html {font-family: Arial; display: inline-block; text-align: center;}
-    h2 {font-size: 3.0rem;}
-    p {font-size: 3.0rem;}
-    body {max-width: 600px; margin:0px auto; padding-bottom: 25px;}
-    .switch {position: relative; display: inline-block; width: 120px; height: 68px} 
-    .switch input {display: none}
-    .slider {position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; border-radius: 34px}
-    .slider:before {position: absolute; content: ""; height: 52px; width: 52px; left: 8px; bottom: 8px; background-color: #fff; -webkit-transition: .4s; transition: .4s; border-radius: 68px}
-    input:checked+.slider {background-color: #2196F3}
-    input:checked+.slider:before {-webkit-transform: translateX(52px); -ms-transform: translateX(52px); transform: translateX(52px)}
-  </style>
-</head>
-<body>
-  <h2>ESP Web Server</h2>
-  %BUTTONPLACEHOLDER%
-<script>function toggleCheckbox(element) {
-  var xhr = new XMLHttpRequest();
-  if(element.checked){ xhr.open("GET", "/update?relay="+element.id+"&state=1", true); }
-  else { xhr.open("GET", "/update?relay="+element.id+"&state=0", true); }
-  xhr.send();
-}</script>
-</body>
-</html>
-)rawliteral";
+// Variable to store the HTTP request
+String header;
 
-// Replaces placeholder with button section in your web page
-String processor(const String &var)
-{
-  // Serial.println(var);
-  if (var == "BUTTONPLACEHOLDER")
-  {
-    String buttons = "";
-    for (int i = 1; i <= NUM_RELAYS; i++)
-    {
-      String relayStateValue = relayState(i);
-      buttons += "<h4>Relay #" + String(i) + " - GPIO " + relayGPIOs[i - 1] + "</h4><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleCheckbox(this)\" id=\"" + String(i) + "\" " + relayStateValue + "><span class=\"slider\"></span></label>";
-    }
-    return buttons;
-  }
-  return String();
-}
+// Auxiliar variables to store the current output state
+String Lamp1State = "off";
 
-String relayState(int numRelay)
-{
-  if (RELAY_NO)
-  {
-    if (digitalRead(relayGPIOs[numRelay - 1]))
-    {
-      return "";
-    }
-    else
-    {
-      return "checked";
-    }
-  }
-  else
-  {
-    if (digitalRead(relayGPIOs[numRelay - 1]))
-    {
-      return "checked";
-    }
-    else
-    {
-      return "";
-    }
-  }
-  return "";
-}
+// Assign output variables to GPIO pins
+const int Lamp1 = 26;
 
 void setup()
 {
-  // Serial port for debugging purposes
   Serial.begin(9600);
+  // Initialize the output variables as outputs
+  pinMode(Lamp1, OUTPUT);
+  // Set outputs to LOW
+  digitalWrite(Lamp1, LOW);
 
-  // Set all relays to off when the program starts - if set to Normally Open (NO), the relay is off when you set the relay to HIGH
-  for (int i = 1; i <= NUM_RELAYS; i++)
-  {
-    pinMode(relayGPIOs[i - 1], OUTPUT);
-    if (RELAY_NO)
-    {
-      digitalWrite(relayGPIOs[i - 1], HIGH);
-    }
-    else
-    {
-      digitalWrite(relayGPIOs[i - 1], LOW);
-    }
-  }
+  // Connect to Wi-Fi network with SSID and password
+  Serial.print("Setting AP (Access Point)…");
+  // Remove the password parameter, if you want the AP (Access Point) to be open
+  WiFi.softAP(ssid, password);
 
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(1000);
-    Serial.println("Connecting to WiFi..");
-  }
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
 
-  // Print ESP32 Local IP Address
-  Serial.println(WiFi.localIP());
-
-  // Route for root / web page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send_P(200, "text/html", index_html, processor); });
-
-  // Send a GET request to <ESP_IP>/update?relay=<inputMessage>&state=<inputMessage2>
-  server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    String inputMessage;
-    String inputParam;
-    String inputMessage2;
-    String inputParam2;
-    // GET input1 value on <ESP_IP>/update?relay=<inputMessage>
-    if (request->hasParam(PARAM_INPUT_1) & request->hasParam(PARAM_INPUT_2)) {
-      inputMessage = request->getParam(PARAM_INPUT_1)->value();
-      inputParam = PARAM_INPUT_1;
-      inputMessage2 = request->getParam(PARAM_INPUT_2)->value();
-      inputParam2 = PARAM_INPUT_2;
-      if(RELAY_NO){
-        Serial.print("NO ");
-        digitalWrite(relayGPIOs[inputMessage.toInt()-1], !inputMessage2.toInt());
-      }
-      else{
-        Serial.print("NC ");
-        digitalWrite(relayGPIOs[inputMessage.toInt()-1], inputMessage2.toInt());
-      }
-    }
-    else {
-      inputMessage = "No message sent";
-      inputParam = "none";
-    }
-    Serial.println(inputMessage + inputMessage2);
-    request->send(200, "text/plain", "OK"); });
-  // Start server
   server.begin();
 }
 
 void loop()
 {
+  WiFiClient client = server.available();
+  if (client)
+  {
+    currentTime = millis();
+    previousTime = currentTime;
+    Serial.println("New Client.");
+    String currentLine = "";
+    while (client.connected() && currentTime - previousTime <= timeoutTime)
+    {
+      currentTime = millis();
+      if (client.available())
+      {
+        char c = client.read();
+        Serial.write(c);
+        header += c;
+        if (c == '\n')
+        {
+          if (currentLine.length() == 0)
+          {
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println("Connection: close");
+            client.println();
+
+            if (header.indexOf("GET /26/on") >= 0)
+            {
+              Serial.println("Lampu Mati");
+              Lamp1State = "off";
+              digitalWrite(Lamp1, HIGH);
+            }
+            else if (header.indexOf("GET /26/off") >= 0)
+            {
+              Serial.println("Lampu Menyala");
+              Lamp1State = "on";
+              digitalWrite(Lamp1, LOW);
+            }
+
+            client.println("<!DOCTYPE html><html>");
+            client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+            client.println("<link rel=\"icon\" href=\"data:,\">");
+            client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
+            client.println(".button { background-color: #3DE31B; border: none; color: black; padding: 16px 40px;");
+            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+            client.println(".button2 {background-color: #DB240F;}</style></head>");
+
+            client.println("<body><h1>ESP32 IOT Web Server Control Lamp</h1>");
+            client.println("<p>Lamp 1 - Current Condition <b>" + Lamp1State + "</b></p>");
+            if (Lamp1State == "off")
+            {
+              client.println("<p><a href=\"/26/off\"><button class=\"button\">ON</button></a></p>");
+            }
+            else
+            {
+              client.println("<p><a href=\"/26/on\"><button class=\"button button2\">OFF</button></a></p>");
+            }
+            client.println("</body></html>");
+            client.println();
+            break;
+          }
+          else
+          {
+            currentLine = "";
+          }
+        }
+        else if (c != '\r')
+        {
+          currentLine += c;
+        }
+      }
+    }
+    header = "";
+    client.stop();
+    Serial.println("Client disconnected.");
+    Serial.println("");
+  }
 }
