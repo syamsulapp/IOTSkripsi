@@ -13,7 +13,7 @@ void loop()
   // Normally Open configuration, send LOW signal to let current flow
   // (if you're usong Normally Closed configuration send HIGH signal)
   digitalWrite(relay, LOW);
-  Serial.println("Current Flowing");
+  Serial.println("Current Data Flowing");
   delay(5000);
 
   // Normally Open configuration, send HIGH signal stop current flow
