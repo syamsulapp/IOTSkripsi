@@ -26,7 +26,7 @@ const int Lamp1 = 26;
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   // Initialize the output variables as outputs
   pinMode(Lamp1, OUTPUT);
   // Set outputs to LOW
