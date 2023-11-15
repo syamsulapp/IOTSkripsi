@@ -70,13 +70,13 @@ void loop()
             client.println("Connection: close");
             client.println();
 
-            if (header.indexOf("GET /26/on") >= 0)
+            if (header.indexOf("GET /26/off") >= 0)
             {
               Serial.println("Lampu Mati");
               Lamp1State = "off";
               digitalWrite(Lamp1, HIGH);
             }
-            else if (header.indexOf("GET /26/off") >= 0)
+            else if (header.indexOf("GET /26/on") >= 0)
             {
               Serial.println("Lampu Menyala");
               Lamp1State = "on";
@@ -95,11 +95,11 @@ void loop()
             client.println("<p>Lamp 1 - Current Condition <b>" + Lamp1State + "</b></p>");
             if (Lamp1State == "off")
             {
-              client.println("<p><a href=\"/26/off\"><button class=\"button\">ON</button></a></p>");
+              client.println("<p><a href=\"/26/on\"><button class=\"button\">ON</button></a></p>");
             }
             else
             {
-              client.println("<p><a href=\"/26/on\"><button class=\"button button2\">OFF</button></a></p>");
+              client.println("<p><a href=\"/26/off\"><button class=\"button button2\">OFF</button></a></p>");
             }
             client.println("</body></html>");
             client.println();
