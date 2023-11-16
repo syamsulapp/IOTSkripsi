@@ -91,8 +91,8 @@ void loop()
             client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
             client.println(".button2 {background-color: #DB240F;}</style></head>");
 
-            client.println("<body><h1>ESP32 IOT Web Server Control Lamp</h1>");
-            client.println("<p>Lamp 1 - Current Condition <b>" + Lamp1State + "</b></p>");
+            client.println("<body><h1>Otomatisasi Lampu</h1>");
+            client.println("<p>Lamp 1 - Kondisi Lampu Saat Ini: <b>" + Lamp1State + "</b></p>");
             if (Lamp1State == "off")
             {
               client.println("<p><a href=\"/26/on\"><button class=\"button\">ON</button></a></p>");

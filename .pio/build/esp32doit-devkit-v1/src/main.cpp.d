@@ -191,4 +191,13 @@
  /home/vitexamp/.platformio/packages/framework-arduinoespressif32/cores/esp32/Server.h \
  /home/vitexamp/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src/WiFiUdp.h \
  /home/vitexamp/.platformio/packages/framework-arduinoespressif32/cores/esp32/Udp.h \
- /home/vitexamp/.platformio/packages/framework-arduinoespressif32/cores/esp32/cbuf.h
+ /home/vitexamp/.platformio/packages/framework-arduinoespressif32/cores/esp32/cbuf.h \
+ .pio/libdeps/esp32doit-devkit-v1/AsyncTCP-esphome/src/AsyncTCP.h \
+ /home/vitexamp/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/lwip/lwip/src/include/lwip/pbuf.h \
+ .pio/libdeps/esp32doit-devkit-v1/ESPAsyncWebServer-esphome/src/ESPAsyncWebServer.h \
+ .pio/libdeps/esp32doit-devkit-v1/ESPAsyncWebServer-esphome/src/StringArray.h \
+ .pio/libdeps/esp32doit-devkit-v1/ESPAsyncWebServer-esphome/src/WebResponseImpl.h \
+ .pio/libdeps/esp32doit-devkit-v1/ESPAsyncWebServer-esphome/src/WebHandlerImpl.h \
+ .pio/libdeps/esp32doit-devkit-v1/ESPAsyncWebServer-esphome/src/AsyncWebSocket.h \
+ .pio/libdeps/esp32doit-devkit-v1/ESPAsyncWebServer-esphome/src/AsyncWebSynchronization.h \
+ .pio/libdeps/esp32doit-devkit-v1/ESPAsyncWebServer-esphome/src/AsyncEventSource.h
