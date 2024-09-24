@@ -11,11 +11,11 @@
 #include <ESPAsyncWebServer.h>
 
 // Replace with your network credentials
-const char *ssid = "WDW";
-const char *password = "manaembuy";
+const char *ssid = "SkripsiIOT";
+const char *password = "1234567890";
 
-const char *http_username = "iot";
-const char *http_password = "admin123";
+const char *http_username = "admin";
+const char *http_password = "skripsi";
 
 const char *PARAM_INPUT_1 = "state";
 
@@ -80,7 +80,18 @@ const char logout_html[] PROGMEM = R"rawliteral(
 </body>
 </html>
 )rawliteral";
-
+String outputState()
+{
+  if (digitalRead(output))
+  {
+    return "checked";
+  }
+  else
+  {
+    return "";
+  }
+  return "";
+}
 // Replaces placeholder with button section in your web page
 String processor(const String &var)
 {
@@ -106,19 +117,6 @@ String processor(const String &var)
   return String();
 }
 
-String outputState()
-{
-  if (digitalRead(output))
-  {
-    return "checked";
-  }
-  else
-  {
-    return "";
-  }
-  return "";
-}
-
 void setup()
 {
   // Serial port for debugging purposes
@@ -127,18 +125,35 @@ void setup()
   pinMode(output, OUTPUT);
   digitalWrite(output, LOW);
 
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(1000);
-    Serial.println("Connecting to WiFi..");
-  }
+  /**
+   * Connect to Wi-Fi Sebagai (client side)
+   */
 
+  // WiFi.begin(ssid, password);
+  // while (WiFi.status() != WL_CONNECTED)
+  // {
+  //   delay(1000);
+  //   Serial.println("Connecting to WiFi..");
+  // }
   // Print ESP Local IP Address
-  Serial.println(WiFi.localIP());
+  // Serial.println(WiFi.localIP());
 
-  // Route for root / web page
+  /**
+   * Connect Wi-Fi Sebagai (Access Point)
+   */
+
+  Serial.print("Setting AP (Access Point) Skripsi IOT…");
+  // Remove the password parameter, if you want the AP (Access Point) to be open
+  WiFi.softAP(ssid, password);
+
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
+
+  /**
+   *
+   * Routes(web) sebagai endpoint dari sebuah fitur
+   */
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             {
     if(!request->authenticate(http_username, http_password))
