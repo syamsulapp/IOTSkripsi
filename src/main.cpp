@@ -65,9 +65,9 @@ const char index_html[] PROGMEM = R"rawliteral(
   </style>
 </head>
 <body>
-  <h2>ESP Web Server</h2>
+  <h2>Otomatisasi Lampu Dengan ESP-32 Dan Relay</h2>
   <button onclick="logoutButton()">Logout</button>
-  <p>Ouput - GPIO 2 - State <span id="state">%STATE%</span></p>
+  <p>Kondisi - Lampu 1 - State <span id="state">%STATE%</span></p>
   %BUTTONPLACEHOLDER%
 <script>function toggleCheckbox(element) {
   var xhr = new XMLHttpRequest();
