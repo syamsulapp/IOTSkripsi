@@ -103,6 +103,10 @@ const char logout_html[] PROGMEM = R"rawliteral(
 </body>
 </html>
 )rawliteral";
+
+/**
+ * method output state digunakan untuk mengetahui status tombol pada lampu pijar
+ */
 String outputState()
 {
   if (digitalRead(output))
@@ -115,7 +119,10 @@ String outputState()
   }
   return "";
 }
-// Replaces placeholder with button section in your web page
+
+/**
+ * methods process digunakan untuk mengeksekusi saklar pada lampu
+ */
 String processor(const String &var)
 {
   // Serial.println(var);
@@ -142,7 +149,7 @@ String processor(const String &var)
 
 void setup()
 {
-  // Serial port for debugging purposes
+  // Baude rate proses
   Serial.begin(115200);
 
   // pin mode untuk saklar/relay
@@ -153,7 +160,8 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
 
   /**
-   * display setup
+   * setup layar oled,digunakan untuk menampilkan tulisan hello skripsi IOT
+   * dan alamat dari fitur aplikasi
    */
   if (!oled_display.begin(SSD1306_SWITCHCAPVCC, 0x3c))
   {
