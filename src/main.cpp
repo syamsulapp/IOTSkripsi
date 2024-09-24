@@ -1,6 +1,12 @@
 #include <Arduino.h>
 #include "FS.h"
 
+/**
+ * jalankan module Wifi.h dan Async pattern jika mengunakan board ESP32
+ * akan tetapi jika menggunakan board esp8266 maka jalankan module espasync untuk esp8266
+ * jalankan module Espasync web server
+ * jalankan module spi, adafruit gfx dan ssd oled lcd screen
+ */
 #ifdef ESP32
 #include <WiFi.h>
 #include <AsyncTCP.h>
@@ -9,8 +15,25 @@
 #include <ESPAsyncTCP.h>
 #endif
 #include <ESPAsyncWebServer.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
-// Replace with your network credentials
+/**
+ * define layar pada oled dan declare display oled
+ */
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+
+Adafruit_SSD1306 oled_display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+/**
+ * declare var untuk nama wifi,password
+ * declare var untuk login auth berupa username dan password
+ * declare var untuk status pada saklar lampu
+ * declare var untuk input pin pada saklar otomatisasi pada lampu
+ */
 const char *ssid = "SkripsiIOT";
 const char *password = "1234567890";
 
@@ -21,7 +44,7 @@ const char *PARAM_INPUT_1 = "state";
 
 const int output = 26;
 
-// Create AsyncWebServer object on port 80
+// Init/jalankan module pattern async web server
 AsyncWebServer server(80);
 
 const char index_html[] PROGMEM = R"rawliteral(
@@ -122,8 +145,29 @@ void setup()
   // Serial port for debugging purposes
   Serial.begin(115200);
 
+  // pin mode untuk saklar/relay
   pinMode(output, OUTPUT);
   digitalWrite(output, LOW);
+
+  // pin mode untuk lampu esp32
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  /**
+   * display setup
+   */
+  if (!oled_display.begin(SSD1306_SWITCHCAPVCC, 0x3c))
+  {
+    Serial.println(F("Oled do not detected"));
+    for (;;)
+      ;
+  }
+  delay(2000);
+  oled_display.clearDisplay();
+  oled_display.setTextSize(1);
+  oled_display.setTextColor(WHITE);
+  oled_display.setCursor(0, 10);
+  oled_display.println("Hello Skripsi IOT");
+  oled_display.display();
 
   /**
    * Connect to Wi-Fi Sebagai (client side)
@@ -142,11 +186,12 @@ void setup()
    * Connect Wi-Fi Sebagai (Access Point)
    */
 
-  Serial.print("Setting AP (Access Point) Skripsi IOT…");
+  Serial.println("Setting AP (Access Point) Skripsi IOT…");
   // Remove the password parameter, if you want the AP (Access Point) to be open
   WiFi.softAP(ssid, password);
 
   IPAddress IP = WiFi.softAPIP();
+  digitalWrite(LED_BUILTIN, HIGH);
   Serial.print("AP IP address: ");
   Serial.println(IP);
 
