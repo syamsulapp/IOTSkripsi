@@ -24,7 +24,7 @@
  * define layar pada oled dan declare display oled
  */
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 Adafruit_SSD1306 oled_display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
@@ -165,9 +165,8 @@ void setup()
   oled_display.clearDisplay();
   oled_display.setTextSize(1);
   oled_display.setTextColor(WHITE);
-  oled_display.setCursor(0, 10);
+  oled_display.setCursor(0, 5);
   oled_display.println("Hello Skripsi IOT");
-  oled_display.display();
 
   /**
    * Connect to Wi-Fi Sebagai (client side)
@@ -192,9 +191,11 @@ void setup()
 
   IPAddress IP = WiFi.softAPIP();
   digitalWrite(LED_BUILTIN, HIGH);
-  Serial.print("AP IP address: ");
-  Serial.println(IP);
-
+  oled_display.setCursor(0, 30);
+  oled_display.print("AP IP address: ");
+  oled_display.setCursor(0, 50);
+  oled_display.println(IP);
+  oled_display.display();
   /**
    *
    * Routes(web) sebagai endpoint dari sebuah fitur
