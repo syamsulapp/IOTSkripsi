@@ -297,7 +297,7 @@ void setup()
     request->send(200, "text/plain", "OK"); });
 
   // Send a GET request to <ESP_IP>/saklar?status=<InputValue>
-  server.on("saklar", HTTP_GET, [](AsyncWebServerRequest *request)
+  server.on("/saklar", HTTP_GET, [](AsyncWebServerRequest *request)
             {
               if (!request->authenticate(http_username, http_password))
                 return request->requestAuthentication();
