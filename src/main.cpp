@@ -42,7 +42,10 @@ const char *http_password = "skripsi";
 
 const char *PARAM_INPUT_1 = "state";
 
+const char *PARAM_INPUT_2 = "status";
+
 const int output = 26;
+const int output_sklar_2 = 26;
 
 // Init/jalankan module pattern async web server
 AsyncWebServer server(80);
@@ -69,6 +72,8 @@ const char index_html[] PROGMEM = R"rawliteral(
   <button onclick="logoutButton()">Logout</button>
   <p>Kondisi - Lampu 1 - State <span id="state">%STATE%</span></p>
   %BUTTONPLACEHOLDER%
+  <p>Kondisi - Lampu 2 - State <span id="lampu2">%LAMPU2%</span></p>
+  %BUTTONLAMPU2PLACEHOLDER%
 <script>function toggleCheckbox(element) {
   var xhr = new XMLHttpRequest();
   if(element.checked){ 
@@ -81,6 +86,19 @@ const char index_html[] PROGMEM = R"rawliteral(
   }
   xhr.send();
 }
+
+function toggleButton2(element) {
+  var xhrButton2 = new XMLHttpRequest();
+  if(element.checked){
+    xhrButton2.open("GET", "/saklar?status=1", true);
+    document.getElementById("lampu2").innerHTML = "ON";  
+  } else {
+    xhrButton2.open("GET", "/saklar?status=0", true);
+    document.getElementById("lampu2").innerHTML = "OFF";      
+  }
+  xhrButton2.send();
+}
+
 function logoutButton() {
   var xhr = new XMLHttpRequest();
   xhr.open("GET", "/logout", true);
@@ -120,6 +138,19 @@ String outputState()
   return "";
 }
 
+String ButtonLampu2State()
+{
+  if (digitalRead(output_sklar_2))
+  {
+    return "checked";
+  }
+  else
+  {
+    return "";
+  }
+  return "";
+}
+
 /**
  * methods process digunakan untuk mengeksekusi saklar pada lampu
  */
@@ -144,6 +175,27 @@ String processor(const String &var)
       return "OFF";
     }
   }
+
+  // lampu 2
+  if (var == "BUTTONLAMPU2PLACEHOLDER")
+  {
+    String ButtonLampu2 = "";
+    String ButtonLampu2Value = ButtonLampu2State();
+    ButtonLampu2 += "<p><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleButton2(this)\" id=\"output_sklar_2\" " + ButtonLampu2Value + "><span class=\"slider\"></span></label></p>";
+    return ButtonLampu2;
+  }
+  if (var == "LAMPU2")
+  {
+    if (digitalRead(output_sklar_2))
+    {
+      return "ON";
+    }
+    else
+    {
+      return "OFF";
+    }
+  }
+
   return String();
 }
 
@@ -155,6 +207,10 @@ void setup()
   // pin mode untuk saklar/relay
   pinMode(output, OUTPUT);
   digitalWrite(output, LOW);
+
+  // pinmode saklar 2
+  pinMode(output_sklar_2, OUTPUT);
+  digitalWrite(output_sklar_2, LOW);
 
   // pin mode untuk lampu esp32
   pinMode(LED_BUILTIN, OUTPUT);
@@ -240,6 +296,24 @@ void setup()
     Serial.println(inputMessage);
     request->send(200, "text/plain", "OK"); });
 
+  // Send a GET request to <ESP_IP>/saklar?status=<InputValue>
+  server.on("saklar", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
+              if (!request->authenticate(http_username, http_password))
+                return request->requestAuthentication();
+                String InputValue;
+                String InputParam;
+                    // GET input1 value on <ESP_IP>/saklar?status=<InputValue>
+                if(request->hasParam(PARAM_INPUT_2)){
+                  InputValue = request->getParam(PARAM_INPUT_2)->value();
+                  InputParam = PARAM_INPUT_2;
+                  digitalWrite(output_sklar_2,InputValue.toInt());
+                }else {
+                  InputValue = "no request send";
+                  InputParam = "none";
+                } 
+                Serial.println(InputValue);
+                request->send(200,"text/plain","OK"); });
   // Start server
   server.begin();
 }
